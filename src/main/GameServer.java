@@ -32,10 +32,6 @@ public class GameServer {
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-            playGame();
-
-            stop();
-
         }catch (IOException e){
             logger.severe("IOException occurred");
         }
@@ -82,13 +78,13 @@ public class GameServer {
             boolean guessed = false;
             while (!guessed) {
                 input = Integer.parseInt(in.readLine());
-                System.out.println("The player guesses: " + count);
+                System.out.println("The player guesses: " + input);
                 if (input < numActual) {
                     out.println("higher");
                 } else if (input > numActual) {
                     out.println("lower");
                 } else if (input == numActual) {
-                    out.println("You guessed it!\n It only took you " + count + " tries!");
+                    out.println("You guessed it! It only took you " + count + " tries!");
                     guessed = true;
                 }
                 count++;
