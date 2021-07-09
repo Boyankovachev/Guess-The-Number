@@ -23,7 +23,7 @@ public class Player {
     public void connect(){
         try {
             playerSocket = new Socket(hostIP, hostPort);
-            out = new PrintWriter(playerSocket.getOutputStream());
+            out = new PrintWriter(playerSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(playerSocket.getInputStream()));
         }catch (IOException e){
             logger.severe("IOException occurred");
@@ -59,11 +59,10 @@ public class Player {
         Scanner scanner = new Scanner(System.in);
 
         try {
-
+            System.out.println(in.readLine());
             while (true) {
                 String serverOutput;
                 String playerInput;
-                System.out.println(in.readLine());
 
                 System.out.println("Guess a number:");
                 playerInput = scanner.nextLine();
