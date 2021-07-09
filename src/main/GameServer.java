@@ -4,102 +4,84 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
+public class Player {
 
-public class GameServer {
+    private final static Logger logger = Logger.getLogger(Player.class.getName());
 
-    private final static Logger logger = Logger.getLogger(GameServer.class.getName());
-
-    private ServerSocket serverSocket;
-    private Socket clientSocket;
+    private Socket playerSocket;
     private PrintWriter out;
     private BufferedReader in;
 
-    private int numActual;
-    private int numMin;
-    private int numMax;
+    private String hostIP;
+    private int hostPort;
 
-    public void start(int port){
+    public void connect(){
         try {
-
-            serverSocket = new ServerSocket(port);
-            //program stops here until a request is received
-            clientSocket = serverSocket.accept();
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-
+            playerSocket = new Socket(hostIP, hostPort);
+            out = new PrintWriter(playerSocket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(playerSocket.getInputStream()));
         }catch (IOException e){
             logger.severe("IOException occurred");
         }
     }
 
-    public void stop(){
+    public void stopConnection(){
         try {
             in.close();
             out.close();
-            clientSocket.close();
-            serverSocket.close();
-        } catch (IOException e) {
+            playerSocket.close();
+        }catch (IOException e){
             logger.severe("IOException occurred");
         }
     }
 
-    public void getNumbers(){
-
+    private void getAdress(){
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("Enter MIN number for range:");
-        numMin = scanner.nextInt();
+        System.out.println("Enter host IP:");
+        hostIP = scanner.nextLine();
 
-        System.out.println("Enter MAX number for range:");
-        numMax = scanner.nextInt();
-
-        System.out.println("Enter ACTUAL number:");
-        numActual = scanner.nextInt();
-
-        while (numActual <= numMin && numActual >= numMax){
-            System.out.println("Enter ACTUAL number:");
-            numActual = scanner.nextInt();
-        }
-
+        System.out.println("Enter host port:");
+        hostPort = scanner.nextInt();
     }
 
-    private void playGame(){
+    private String sendValueAndReturnAnswer(String value) throws IOException {
+        out.println(value);
+        return in.readLine();
+    }
+
+    public void play(){
+        Scanner scanner = new Scanner(System.in);
 
         try {
+            System.out.println(in.readLine());
+            while (true) {
+                String serverOutput;
+                String playerInput;
 
-            out.println("Guess number between " + numMin + " and " + numMax);
-
-            int input, count=0;
-            boolean guessed = false;
-            while (!guessed) {
-                input = Integer.parseInt(in.readLine());
-                System.out.println("The player guesses: " + input);
-                if (input < numActual) {
-                    out.println("higher");
-                } else if (input > numActual) {
-                    out.println("lower");
-                } else if (input == numActual) {
-                    out.println("You guessed it! It only took you " + count + " tries!");
-                    guessed = true;
+                System.out.println("Guess a number:");
+                playerInput = scanner.nextLine();
+                serverOutput = sendValueAndReturnAnswer(playerInput);
+                System.out.println(serverOutput);
+                if (!serverOutput.equals("higher") && !serverOutput.equals("lower")) {
+                    break;
                 }
-                count++;
             }
-            System.out.println("The player guessed it in " + count + " turns.");
         }catch (IOException e){
-            logger.severe("Input error");
+            logger.severe("IOException occurred");
         }
     }
 
     public static void main(String[] args){
-        GameServer gameServer = new GameServer();
-        gameServer.getNumbers();
-        gameServer.start(6666);
-        gameServer.playGame();
+        Player player = new Player();
+        player.getAdress();
+        player.connect();
+        player.play();
         try {
             Thread.sleep(1000);
             System.out.println("Exiting.");
@@ -111,7 +93,7 @@ public class GameServer {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        gameServer.stop();
+        player.stopConnection();
     }
 
 }
